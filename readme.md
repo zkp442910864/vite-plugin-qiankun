@@ -1,5 +1,5 @@
 
-# [源代码](https://github.com/tengmaoqing/vite-plugin-qiankun)
+# [源代码出处](https://github.com/tengmaoqing/vite-plugin-qiankun)
 
 #### 简介
 
