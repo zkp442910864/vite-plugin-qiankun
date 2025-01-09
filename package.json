@@ -5,6 +5,7 @@
   "module": "es/index.js",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "rollup -c scripts/rollup.config.js",
     "example:install": "cd example/main && npm install && cd ../viteapp && npm install && cd ../vue && npm install && cd ../react18 && npm install && cd ../vue3sub && npm install",
@@ -17,6 +18,18 @@
     "start:vue3sub": "cd example/vue3sub && npm run dev",
     "start:vue": "cd example/vue && npm run start",
     "vite:test": "npm run build && cd example/viteapp && npm run dev"
+  },
+  "exports": {
+    ".": {
+      "types": "./es/index.d.ts",
+      "import": "./es/index.js",
+      "require": "./dist/index.js"
+    },
+    "./helper": {
+      "types": "./es/helper.d.ts",
+      "import": "./es/helper.js",
+      "require": "./dist/helper.js"
+    }
   },
   "keywords": [
     "qiankun",
@@ -45,7 +58,7 @@
     "eslint-plugin-promise": "^5.1.0",
     "npm-run-all": "^4.1.5",
     "rollup": "^2.73.0",
-    "rollup-plugin-typescript2": "^0.30.0",
+    "rollup-plugin-typescript2": "^0.36.0",
     "typescript": "^4.6.4",
     "vite": "^2.9.9"
   },

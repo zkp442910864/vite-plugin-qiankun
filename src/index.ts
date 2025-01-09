@@ -1,4 +1,4 @@
-import cheerio, { CheerioAPI, Element } from 'cheerio'
+import cheerio, { Cheerio, CheerioAPI, Element } from 'cheerio'
 import { PluginOption } from 'vite'
 
 const createQiankunHelper = (qiankunName: string) => `
@@ -70,8 +70,26 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
     return script$
   }
 
+  const handleReactRefresh = ($: CheerioAPI, scriptTag: Cheerio<Element>) => {
+    if (!scriptTag.length) {
+      return
+    }
+    const content = scriptTag.html() || ''
+    scriptTag.html('')
+    scriptTag.attr('src', '/@react-refresh')
+    const newScriptTag = module2DynamicImport($, scriptTag.get(0))!
+    const newContent = newScriptTag.html()
+    newScriptTag.html(`
+      ${newContent}.then((mod) => {
+        ${content.replace(/import (\w+) from "(.*)"/, 'const $1 = mod.default')}
+      })
+    `)
+  }
+
   return {
     name: 'qiankun-html-transform',
+    order: 'post',
+    enforce: 'post',
     configResolved (config) {
       isProduction = config.command === 'build' || config.isProduction
       base = config.base
@@ -113,6 +131,8 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
           })`)
         }
       })
+
+      handleReactRefresh($, $('head script[type=module]:contains("/@react-refresh")'))
 
       $('body').append(`<script>${createQiankunHelper(qiankunName)}</script>`)
       const output = $.html()
