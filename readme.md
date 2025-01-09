@@ -1,3 +1,6 @@
+
+# [源代码](https://github.com/tengmaoqing/vite-plugin-qiankun)
+
 #### 简介
 
 > vite-plugin-qiankun: 帮助应用快速接入乾坤的vite插件
