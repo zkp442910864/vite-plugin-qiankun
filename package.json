@@ -1,6 +1,6 @@
 {
   "name": "@zzzz-/vite-plugin-qiankun",
-  "version": "1.0.15",
+  "version": "1.0.16",
   "description": "vite for qiankun",
   "module": "es/index.js",
   "main": "dist/index.js",
