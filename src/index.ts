@@ -1,5 +1,8 @@
-import cheerio, { Cheerio, CheerioAPI, Element } from 'cheerio'
+import * as cheerio from 'cheerio'
+import { Cheerio, CheerioAPI } from 'cheerio'
 import { PluginOption } from 'vite'
+
+type Element = ReturnType<ReturnType<typeof cheerio.load>> extends Cheerio<infer T> ? T : never
 
 const createQiankunHelper = (qiankunName: string) => `
   const createDeffer = (hookName) => {
@@ -77,7 +80,7 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
     const content = scriptTag.html() || ''
     scriptTag.html('')
     scriptTag.attr('src', '/@react-refresh')
-    const newScriptTag = module2DynamicImport($, scriptTag.get(0))!
+    const newScriptTag = module2DynamicImport($, scriptTag[0])!
     const newContent = newScriptTag.html()
     newScriptTag.html(`
       ${newContent}.then((mod) => {
@@ -107,7 +110,7 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
             let [htmlStr, ...rest] = args
             if (typeof htmlStr === 'string') {
               const $ = cheerio.load(htmlStr)
-              module2DynamicImport($, $(`script[src=${base}@vite/client]`).get(0))
+              module2DynamicImport($, $(`script[src=${base}@vite/client]`).get(0)!)
               htmlStr = $.html()
             }
             end(htmlStr, ...rest)
@@ -132,6 +135,7 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
         }
       })
 
+      // type wwt = ReturnType<typeof $>
       handleReactRefresh($, $('head script[type=module]:contains("/@react-refresh")'))
 
       $('body').append(`<script>${createQiankunHelper(qiankunName)}</script>`)
