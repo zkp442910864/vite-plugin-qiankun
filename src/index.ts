@@ -60,10 +60,10 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
     }
     const script$ = $(scriptTag)
     const moduleSrc = script$.attr('src')
-    const appendBase = "(window.proxy ? (window.proxy.__INJECTED_PUBLIC_PATH_BY_QIANKUN__ + '..') : '') + "
+    const appendBase = "(window.proxy ? (window.proxy.__INJECTED_PUBLIC_PATH_BY_QIANKUN__) : '') + "
     script$.removeAttr('src')
     script$.removeAttr('type')
-    script$.html(`import(${appendBase}'${moduleSrc}')`)
+    script$.html(`import((${appendBase}'${moduleSrc}').replace(/(?<!:)\\/+/g, '/'))`)
     return script$
   }
 
