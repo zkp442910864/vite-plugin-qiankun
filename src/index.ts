@@ -49,37 +49,31 @@ const createImportFinallyResolve = (qiankunName: string) => {
 }
 
 export type MicroOption = {
-  useDevMode?: boolean
+  // useDevMode?: boolean
 }
 type PluginFn = (qiankunName: string, microOption?: MicroOption) => PluginOption;
 
 const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
-  let isProduction: boolean
-  let base = ''
-
   const module2DynamicImport = ($: CheerioAPI, scriptTag: Element) => {
     if (!scriptTag) {
       return
     }
     const script$ = $(scriptTag)
     const moduleSrc = script$.attr('src')
-    let appendBase = ''
-    if (microOption.useDevMode && !isProduction) {
-      appendBase = '(window.proxy ? (window.proxy.__INJECTED_PUBLIC_PATH_BY_QIANKUN__ + \'..\') : \'\') + '
-    }
+    const appendBase = "(window.proxy ? (window.proxy.__INJECTED_PUBLIC_PATH_BY_QIANKUN__ + '..') : '') + "
     script$.removeAttr('src')
     script$.removeAttr('type')
     script$.html(`import(${appendBase}'${moduleSrc}')`)
     return script$
   }
 
-  const handleReactRefresh = ($: CheerioAPI, scriptTag: Cheerio<Element>) => {
+  const handleDevScript = ($: CheerioAPI, scriptTag: Cheerio<Element>, keyword: string) => {
     if (!scriptTag.length) {
       return
     }
     const content = scriptTag.html() || ''
     scriptTag.html('')
-    scriptTag.attr('src', '/@react-refresh')
+    scriptTag.attr('src', keyword)
     const newScriptTag = module2DynamicImport($, scriptTag[0])!
     const newContent = newScriptTag.html()
     newScriptTag.html(`
@@ -93,32 +87,6 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
     name: 'qiankun-html-transform',
     order: 'post',
     enforce: 'post',
-    configResolved (config) {
-      isProduction = config.command === 'build' || config.isProduction
-      base = config.base
-    },
-
-    configureServer (server) {
-      return () => {
-        server.middlewares.use((req, res, next) => {
-          if (isProduction || !microOption.useDevMode) {
-            next()
-            return
-          }
-          const end = res.end.bind(res)
-          res.end = (...args: any[]) => {
-            let [htmlStr, ...rest] = args
-            if (typeof htmlStr === 'string') {
-              const $ = cheerio.load(htmlStr)
-              module2DynamicImport($, $(`script[src=${base}@vite/client]`).get(0)!)
-              htmlStr = $.html()
-            }
-            end(htmlStr, ...rest)
-          }
-          next()
-        })
-      }
-    },
     transformIndexHtml (html: string) {
       const $ = cheerio.load(html)
       const moduleTags = $('body script[type=module], head script[crossorigin=""]')
@@ -135,8 +103,9 @@ const htmlPlugin: PluginFn = (qiankunName, microOption = {}) => {
         }
       })
 
-      // type wwt = ReturnType<typeof $>
-      handleReactRefresh($, $('head script[type=module]:contains("/@react-refresh")'))
+      // <script type="module" src="/@vite/client"></script>
+      handleDevScript($, $('head script[type=module][src="/@vite/client"]'), '/@vite/client')
+      handleDevScript($, $('head script[type=module]:contains("/@react-refresh")'), '/@react-refresh')
 
       $('body').append(`<script>${createQiankunHelper(qiankunName)}</script>`)
       const output = $.html()
